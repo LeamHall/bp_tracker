@@ -48,7 +48,6 @@ class TestBpTracker(unittest.TestCase):
         test_dir_writeable = os.path.join(self.test_dir.name, "writeable")
         os.mkdir(test_dir_writeable)
         os.chmod(test_dir_writeable, 0o777)
-        # test_file = os.path.join(test_dir_writeable, "missing.file")
         self.assertTrue(bp_tracker.check_file(self.test_dir.name, "w"))
 
     def test_check_file_read_missing_file(self):
@@ -226,21 +225,6 @@ class TestBpTracker(unittest.TestCase):
         self.assertTrue(result[0] == expected[0])
         self.assertTrue(result[1] == expected[1])
         self.assertTrue(result[2] == expected[2])
-
-    def test_filter_data(self):
-        pass
-
-    def test_get_args(self):
-        pass
-
-    def test_set_data_file(self):
-        pass
-
-    def test_add(self):
-        pass
-
-    def test_format_data(self):
-        pass
 
     def test_sort_by_index(self):
         data = [
