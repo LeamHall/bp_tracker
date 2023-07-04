@@ -84,9 +84,9 @@ def array_from_file(report_file, invalid_lines=None):
     return res
 
 
-def average(l):
+def average(lst):
     """Takes a list of numerics and returns an integer average"""
-    return sum(l) // len(l)
+    return sum(lst) // len(lst)
 
 
 def check_file(file, mode):
@@ -125,7 +125,6 @@ def filter_data(data, args):
     considered.
     """
     ret = []
-    ok = True
     for item in data:
         if args.times and not time_of_day_filter(
             item, args.times[0], args.times[1]
@@ -140,9 +139,9 @@ def filter_data(data, args):
         ret.append(item)
     if args.number:
         n = args.number[0]
-        l = len(ret)
-        if (n > l) or (n < 1):
-            n = l
+        ln = len(ret)
+        if (n > ln) or (n < 1):
+            n = ln
         ret = ret[-n:]
     if len(ret) == 0:
         raise NoValidData("No data to report on")
@@ -299,11 +298,11 @@ def valid_data(line, invalid_lines=None):
                 data[i] = int(data[i])
             data[3] = str(data[3])
         except ValueError:
-            if invalid_lines != None:
+            if invalid_lines is not None:
                 invalid_lines.append(line)
             return
     else:
-        if invalid_lines != None:
+        if invalid_lines is not None:
             invalid_lines.append(line)
         return
     return data

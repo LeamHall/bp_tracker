@@ -21,6 +21,10 @@ class TestBpTracker(unittest.TestCase):
             f.write("140 64 65 20220915.1408\n")
             f.write("140 62 60 20220915.1714\n")
         self.good_data = bp_tracker.array_from_file(self.good_file)
+        self.bad_file = os.path.join(self.test_dir.name, "bad_data.txt")
+        with open(self.bad_file, "w") as b:
+            b.write("This is trash")
+        os.chmod(self.bad_file, 0o000)
 
     def tearDown(self):
         self.test_dir.cleanup()
@@ -29,6 +33,10 @@ class TestBpTracker(unittest.TestCase):
         self.assertTrue(bp_tracker.average([120, 130, 140]) == 130)
         self.assertTrue(bp_tracker.average([121, 130, 140]) == 130)
         self.assertTrue(bp_tracker.average([123, 130, 140]) == 131)
+
+    def test_bad_file(self):
+        self.assertFalse(bp_tracker.check_file(self.bad_file, "w"))
+        self.assertFalse(bp_tracker.check_file(self.bad_file, "r"))
 
     def test_check_file_readable_file(self):
         self.assertTrue(bp_tracker.check_file(self.good_file, "r"))
@@ -40,7 +48,7 @@ class TestBpTracker(unittest.TestCase):
         test_dir_writeable = os.path.join(self.test_dir.name, "writeable")
         os.mkdir(test_dir_writeable)
         os.chmod(test_dir_writeable, 0o777)
-        test_file = os.path.join(test_dir_writeable, "missing.file")
+        # test_file = os.path.join(test_dir_writeable, "missing.file")
         self.assertTrue(bp_tracker.check_file(self.test_dir.name, "w"))
 
     def test_check_file_read_missing_file(self):
@@ -200,10 +208,10 @@ class TestBpTracker(unittest.TestCase):
 
         # Test out of bounds
         self.assertTrue(
-            bp_tracker.get_label(-1, bp_tracker.systolic_labels) == None
+            bp_tracker.get_label(-1, bp_tracker.systolic_labels) is None
         )
         self.assertTrue(
-            bp_tracker.get_label(301, bp_tracker.diastolic_labels) == None
+            bp_tracker.get_label(301, bp_tracker.diastolic_labels) is None
         )
 
     def test_format_report(self):
