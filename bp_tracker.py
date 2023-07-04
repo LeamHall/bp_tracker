@@ -47,14 +47,6 @@ diastolic_labels = (
 )
 
 
-invalid_lines = []  # still to decide: -v or -i --invalid option?
-# option might collect a file name into which to dump invalid_lines
-
-
-class NoValidData(ValueError):
-    pass
-
-
 def add(args):
     # This format allows sequencing now and parsing later.
     if check_file(args.file, "w"):
@@ -68,7 +60,7 @@ def add(args):
         sys.exit(1)
 
 
-def array_from_file(report_file, invalid_lines=None):
+def array_from_file(report_file):
     """
     Input is the report file: four (string) values per line.
     Output is [int, int, int, str], systolic, diastolic, pulse, time stamp.
@@ -78,7 +70,7 @@ def array_from_file(report_file, invalid_lines=None):
     res = []
     with open(report_file, "r") as f:
         for line in useful_lines(f):
-            numbers = valid_data(line, invalid_lines=invalid_lines)
+            numbers = valid_data(line)
             if numbers:
                 res.append(numbers)
     return res
@@ -143,8 +135,6 @@ def filter_data(data, args):
         if (n > ln) or (n < 1):
             n = ln
         ret = ret[-n:]
-    if len(ret) == 0:
-        raise NoValidData("No data to report on")
     return ret
 
 
@@ -284,27 +274,16 @@ def useful_lines(stream, comment="#"):
             yield line
 
 
-def valid_data(line, invalid_lines=None):
+def valid_data(line):
     """
     Accepts what is assumed to be a valid line.
     If valid, returns a list of int, int, int, string.
-    If not valid and if <invalid_lines> is not None,
-    assumes errors is a list to which the invalid line is added.
     """
     data = line.split()
     if len(data) == 4:
-        try:
-            for i in range(3):
-                data[i] = int(data[i])
-            data[3] = str(data[3])
-        except ValueError:
-            if invalid_lines is not None:
-                invalid_lines.append(line)
-            return
-    else:
-        if invalid_lines is not None:
-            invalid_lines.append(line)
-        return
+        for i in range(3):
+            data[i] = int(data[i])
+        data[3] = str(data[3])
     return data
 
 
@@ -315,13 +294,10 @@ if __name__ == "__main__":
         add(args)
 
     try:
-        data = filter_data(array_from_file(args.file, invalid_lines), args)
+        data = filter_data(array_from_file(args.file))
         data = sort_by_index(data, -1)
     except FileNotFoundError:
         print("Unable to find {}, exiting.".format(args.file))
-        sys.exit(1)
-    except NoValidData:
-        print("No viable data in {}, exiting.".format(args.file))
         sys.exit(1)
 
     for element in data:
