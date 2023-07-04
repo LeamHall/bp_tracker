@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-
-# File test/tests.py
-
 import os
 import os.path
 import tempfile
@@ -239,7 +235,3 @@ class TestBpTracker(unittest.TestCase):
         expected = [168, 87, 76, "20221001.1228"]
         result = bp_tracker.sort_by_index(data, -1)
         self.assertTrue(result[-1] == expected)
-
-
-if __name__ == "__main__":
-    unittest.main()

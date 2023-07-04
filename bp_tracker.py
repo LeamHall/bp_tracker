@@ -236,7 +236,7 @@ def no_date_stamp(data):
 
 def not_before_filter(data, date):
     if no_date_stamp(data):
-        return
+        return False
     day = data[3].split(".")[0]
     if day >= date:
         return True
@@ -250,7 +250,7 @@ def sort_by_index(data, index):
 
 def time_of_day_filter(datum, begin, end):
     if no_date_stamp(datum):
-        return
+        return False
     time = datum[3].split(".")[-1]
     if time >= begin and time <= end:
         return True
