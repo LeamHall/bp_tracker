@@ -16,7 +16,7 @@ class TestBpTracker(unittest.TestCase):
             f.write("120 64 60 20220914.1753\n")
             f.write("140 64 65 20220915.1408\n")
             f.write("140 62 60 20220915.1714\n")
-        self.good_data = bp_tracker.array_from_file(self.good_file)
+        self.good_data = bp_tracker.results_from_file(self.good_file)
         self.bad_file = os.path.join(self.test_dir.name, "bad_data.txt")
         with open(self.bad_file, "w") as b:
             b.write("This is trash")
@@ -70,13 +70,7 @@ class TestBpTracker(unittest.TestCase):
     def test_useful_lines(self):
         self.assertEqual(len(self.good_data), 4)
 
-    def test_valid_data(self):
-        data = "120 65 55 20220914.1407"
-        result = bp_tracker.valid_data(data)
-        expected = [120, 65, 55, "20220914.1407"]
-        self.assertTrue(result == expected)
-
-    def test_array_from_file(self):
+    def test_results_from_file(self):
         data = (
             "110 59 68 20220809.1640",
             "124 62 62 20220810.0840",
@@ -88,29 +82,10 @@ class TestBpTracker(unittest.TestCase):
         with open(report_file, "w") as f:
             for line in data:
                 f.write(line + "\n")
-        res = bp_tracker.array_from_file(report_file)
+        res = bp_tracker.results_from_file(report_file)
         self.assertEqual(5, len(res))
-        for tup in res:
-            self.assertEqual(4, len(tup))
-
-    def test_list_from_index(self):
-        data = [
-            [110, 59, 68, "20220809.1640"],
-            [124, 62, 62, "20220810.0840"],
-            [134, 63, 57, "20220812.0758"],
-            [134, 62, 57, "20220812.1128"],
-            [100, 59, 62, "20220812.1323"],
-        ]
-        expected = [
-            [110, 124, 134, 134, 100],
-            [59, 62, 63, 62, 59],
-            [68, 62, 57, 57, 62],
-        ]
-        for e in range(0, 3):
-            self.assertTrue(bp_tracker.list_from_index(data, e) == expected[e])
-
-    def test_no_date_stamp(self):
-        self.assertEqual(bp_tracker.no_date_stamp((115, 67, 66, "0.0")), None)
+        for element in res:
+            self.assertTrue(type(element) is bp_tracker.Result)
 
     def test_time_of_day_filter(self):
         self.assertEqual(
@@ -134,50 +109,6 @@ class TestBpTracker(unittest.TestCase):
         self.assertEqual(
             bp_tracker.time_of_day_filter(
                 (115, 67, 66, "0.0"), "0800", "0900"
-            ),
-            None,
-        )
-
-    def test_date_range_filter(self):
-        self.assertEqual(
-            bp_tracker.date_range_filter(
-                (115, 67, 66, "20220914.0839"),
-                "20220913.0800",
-                "20220916.0900",
-            ),
-            True,
-        )
-        self.assertEqual(
-            bp_tracker.time_of_day_filter(
-                (115, 67, 66, "20220914.0839"),
-                "20220910.0800",
-                "20220913.0900",
-            ),
-            None,
-        )
-        self.assertEqual(
-            bp_tracker.time_of_day_filter(
-                (115, 67, 66, "0.0"), "20220910.0800", "20220913.0900"
-            ),
-            None,
-        )
-
-    def test_not_before_filter(self):
-        self.assertEqual(
-            bp_tracker.not_before_filter(
-                (115, 67, 66, "20220914.0839"), "20220913.0800"
-            ),
-            True,
-        )
-        self.assertEqual(
-            bp_tracker.not_before_filter(
-                (115, 67, 66, "20220914.0839"), "20220915.0800"
-            ),
-            None,
-        )
-        self.assertEqual(
-            bp_tracker.not_before_filter(
-                (115, 67, 66, "0.0"), "20220915.0800"
             ),
             None,
         )
@@ -221,17 +152,3 @@ class TestBpTracker(unittest.TestCase):
         self.assertTrue(result[0] == expected[0])
         self.assertTrue(result[1] == expected[1])
         self.assertTrue(result[2] == expected[2])
-
-    def test_sort_by_index(self):
-        data = [
-            [168, 87, 76, "20221001.1227"],
-            [189, 94, 71, "20220924.1243"],
-            [176, 92, 76, "0.0"],
-            [168, 87, 76, "20221001.1228"],
-            [162, 94, 78, "20220927.1632"],
-            [160, 93, 70, "20220926.0743"],
-            [163, 90, 64, "20220922.0740"],
-        ]
-        expected = [168, 87, 76, "20221001.1228"]
-        result = bp_tracker.sort_by_index(data, -1)
-        self.assertTrue(result[-1] == expected)

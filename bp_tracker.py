@@ -17,7 +17,7 @@
 
 import argparse
 from datetime import datetime
-from operator import itemgetter
+from operator import attrgetter
 import os
 import sys
 
@@ -47,6 +47,29 @@ diastolic_labels = (
 )
 
 
+class Result:
+    def __init__(self, line=""):
+        line_data = line.strip().split()
+        self.systolic = int(line_data[0])
+        self.diastolic = int(line_data[1])
+        self.pulse = int(line_data[2])
+        if len(line_data) == 3:
+            self.timestamp = datetime.now().strftime("%Y%m%d.%H%M")
+        else:
+            self.timestamp = line_data[3]
+
+    def before_date(self, date):
+        day = self.timestamp.split(".")[0]
+        return day <= date
+
+    def after_date(self, date):
+        day = self.timestamp.split(".")[0]
+        return day >= date
+
+    def in_date_range(self, begin, end):
+        return self.after_date(begin) and self.before_date(end)
+
+
 def add(args):
     # This format allows sequencing now and parsing later.
     if check_file(args.file, "w"):
@@ -60,7 +83,7 @@ def add(args):
         sys.exit(1)
 
 
-def array_from_file(report_file):
+def results_from_file(report_file):
     """
     Input is the report file: four (string) values per line.
     Output is [int, int, int, str], systolic, diastolic, pulse, time stamp.
@@ -70,9 +93,7 @@ def array_from_file(report_file):
     res = []
     with open(report_file, "r") as f:
         for line in useful_lines(f):
-            numbers = valid_data(line)
-            if numbers:
-                res.append(numbers)
+            res.append(Result(line))
     return res
 
 
@@ -98,46 +119,6 @@ def check_file(file, mode):
     return False
 
 
-def date_range_filter(datum, begin, end):
-    if no_date_stamp(datum):
-        return
-    day = datum[3].split(".")[0]
-    if day >= begin and day <= end:
-        return True
-
-
-def filter_data(data, args):
-    """
-    Although the decision is perhaps arbitrary,
-    we do the filtration first and only consider
-    the -n --number2consider argument on what ever
-    passes the filters rather than starting with
-    -n readings and applying filters afterwards
-    which could result in less than n values being
-    considered.
-    """
-    ret = []
-    for item in data:
-        if args.times and not time_of_day_filter(
-            item, args.times[0], args.times[1]
-        ):
-            continue
-        if args.range and not date_range_filter(
-            item, args.range[0], args.range[1]
-        ):
-            continue
-        if args.date and not not_before_filter(item, args.date[0]):
-            continue
-        ret.append(item)
-    if args.number:
-        n = args.number[0]
-        ln = len(ret)
-        if (n > ln) or (n < 1):
-            n = ln
-        ret = ret[-n:]
-    return ret
-
-
 def format_report(systolics, diastolics):
     """
     Takes the numeric lists of systolics, diastolics, and pulses, and
@@ -146,7 +127,8 @@ def format_report(systolics, diastolics):
     systolic = get_last(systolics)
     diastolic = get_last(diastolics)
     result = "Systolic {} ({}) \n".format(
-        systolic, get_label(systolic, systolic_labels)
+        systolic,
+        get_label(systolic, systolic_labels),
     )
     result += "Diastolic {} ({}) \n".format(
         diastolic, get_label(diastolic, diastolic_labels)
@@ -216,41 +198,39 @@ def get_label(num, scale):
     return None
 
 
+def get_labels(num, scale):
+    """
+    Takes a number and a tuple of (min, max, lable) tuples,
+    returns the min, max, and label for the range the number falls into.
+    """
+    for group in scale:
+        lower, upper, label = group
+        if num in range(lower, upper + 1):
+            # The 'upper + 1' is required because range doesn't include upper
+            return lower, upper, label
+    return None
+
+
 def get_last(val):
     """Returns last element of a list."""
     return val[-1]
 
 
-def list_from_index(data, index):
-    """Takes a list of lists and returns a list of the specific index"""
+def list_of_attr(data, attr):
+    """Takes a list of results and returns a list of the specific attribute"""
     result = []
     for element in data:
-        result.append(element[index])
+        result.append(getattr(element, attr))
     return result
 
 
-def no_date_stamp(data):
-    if data[3] == 0:
-        return True
-
-
-def not_before_filter(data, date):
-    if no_date_stamp(data):
-        return False
-    day = data[3].split(".")[0]
-    if day >= date:
-        return True
-
-
-def sort_by_index(data, index):
+def sort_by_attr(data, _attr):
     """Sorts lists of lists by specified index in sub-lists."""
-    get_on_index = itemgetter(index)
-    return sorted(data, key=get_on_index)
+    get_on_attr = attrgetter(_attr)
+    return sorted(data, key=get_on_attr)
 
 
 def time_of_day_filter(datum, begin, end):
-    if no_date_stamp(datum):
-        return False
     time = datum[3].split(".")[-1]
     if time >= begin and time <= end:
         return True
@@ -258,7 +238,6 @@ def time_of_day_filter(datum, begin, end):
 
 def useful_lines(stream, comment="#"):
     """
-    A generator which accepts a stream of lines (strings.)
     Blank lines and leading and/or trailing white space are ignored.
     If <comment> resolves to true, lines beginning with <comment>
     (after being stripped of leading spaces) are also ignored.
@@ -274,19 +253,6 @@ def useful_lines(stream, comment="#"):
             yield line
 
 
-def valid_data(line):
-    """
-    Accepts what is assumed to be a valid line.
-    If valid, returns a list of int, int, int, string.
-    """
-    data = line.split()
-    if len(data) == 4:
-        for i in range(3):
-            data[i] = int(data[i])
-        data[3] = str(data[3])
-    return data
-
-
 if __name__ == "__main__":
     args = get_args()
 
@@ -294,14 +260,12 @@ if __name__ == "__main__":
         add(args)
 
     try:
-        data = filter_data(array_from_file(args.file))
-        data = sort_by_index(data, -1)
+        data = results_from_file(args.file)
     except FileNotFoundError:
         print("Unable to find {}, exiting.".format(args.file))
         sys.exit(1)
 
-    for element in data:
-        sys_list = list_from_index(data, 0)
-        dia_list = list_from_index(data, 1)
+    sys_list = list_of_attr(data, "systolic")
+    dia_list = list_of_attr(data, "diastolic")
 
     print(format_report(sys_list, dia_list))
