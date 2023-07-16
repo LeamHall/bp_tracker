@@ -142,13 +142,15 @@ class TestBpTracker(unittest.TestCase):
 
     def test_format_report(self):
         expected = [
-            "Systolic 165 (high: stage 2) ",
-            "Diastolic 89 (high: stage 1) ",
+            "Systolic 165 (high: stage 2 [140-179])",
+            "Diastolic 89 (high: stage 1 [80-89])",
             "Average 160/88 ",
         ]
         systolics = [155, 165]
         diastolics = [87, 89]
         result = bp_tracker.format_report(systolics, diastolics).split("\n")
+        print(result[0])
+        print(expected[0])
         self.assertTrue(result[0] == expected[0])
         self.assertTrue(result[1] == expected[1])
         self.assertTrue(result[2] == expected[2])

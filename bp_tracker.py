@@ -125,13 +125,20 @@ def format_report(systolics, diastolics):
     return a string for printing.
     """
     systolic = get_last(systolics)
+    sys_low, sys_upper, sys_label = get_labels(systolic, systolic_labels)
     diastolic = get_last(diastolics)
-    result = "Systolic {} ({}) \n".format(
+    dia_low, dia_upper, dia_label = get_labels(diastolic, diastolic_labels)
+    result = "Systolic {} ({} [{}-{}])\n".format(
         systolic,
-        get_label(systolic, systolic_labels),
+        sys_label,
+        sys_low,
+        sys_upper,
     )
-    result += "Diastolic {} ({}) \n".format(
-        diastolic, get_label(diastolic, diastolic_labels)
+    result += "Diastolic {} ({} [{}-{}])\n".format(
+        diastolic,
+        dia_label,
+        dia_low,
+        dia_upper,
     )
     result += "Average {}/{} \n".format(
         average(systolics), average(diastolics)
