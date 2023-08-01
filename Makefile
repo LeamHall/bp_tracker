@@ -9,7 +9,7 @@ clean:
 	find . -type f -name "*.pyc" -exec rm {} \;
 	find . -type f -name "*.swp" -exec rm {} \;
 
-lamr: clean test
+all: clean test
 	python -m black . -l79
 	coverage run -m pytest
 	coverage report -m 
