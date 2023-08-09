@@ -270,7 +270,6 @@ if __name__ == "__main__":
     if args.add:
         add(args)
     elif args.range:
-        print("In results")
         begin = args.range[0]
         if len(args.range) > 1:
             end = args.range[1]
