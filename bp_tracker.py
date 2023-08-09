@@ -59,11 +59,11 @@ class Result:
             self.timestamp = line_data[3]
 
     def before_date(self, date):
-        day = self.timestamp.split(".")[0]
+        day = int(self.timestamp.split(".")[0])
         return day <= date
 
     def after_date(self, date):
-        day = self.timestamp.split(".")[0]
+        day = int(self.timestamp.split(".")[0])
         return day >= date
 
     def in_date_range(self, begin, end):
@@ -71,7 +71,7 @@ class Result:
 
 
 def add(args):
-    # This format allows sequencing now and parsing later.
+    """Append arguments to datafile"""
     if check_file(args.file, "w"):
         timestamp = datetime.now().strftime("%Y%m%d.%H%M")
         this_report = args.add
@@ -147,7 +147,7 @@ def format_report(systolics, diastolics):
 
 
 def get_args():
-    """ """
+    """Gets args"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-f",
@@ -171,16 +171,13 @@ def get_args():
     parser.add_argument(
         "-r",
         "--range",
-        nargs=2,
+        nargs="+",
         type=int,
-        help="Only consider readings taken within date RANGE.",
-    )
-    parser.add_argument(
-        "-d",
-        "--date",
-        nargs=1,
-        type=int,
-        help="Ignore readings prior to DATE",
+        help="""Begin and end dates are in YYYYMMDD format.
+            Default today for end. For example:
+            20230809 20230824
+            or
+            20230809""",
     )
     parser.add_argument(
         "-n",
@@ -241,6 +238,7 @@ def time_of_day_filter(datum, begin, end):
     time = datum[3].split(".")[-1]
     if time >= begin and time <= end:
         return True
+    return False
 
 
 def useful_lines(stream, comment="#"):
@@ -263,16 +261,31 @@ def useful_lines(stream, comment="#"):
 if __name__ == "__main__":
     args = get_args()
 
-    if args.add:
-        add(args)
-
     try:
         data = results_from_file(args.file)
     except FileNotFoundError:
         print("Unable to find {}, exiting.".format(args.file))
         sys.exit(1)
 
-    sys_list = list_of_attr(data, "systolic")
-    dia_list = list_of_attr(data, "diastolic")
+    if args.add:
+        add(args)
+    elif args.range:
+        print("In results")
+        begin = args.range[0]
+        if len(args.range) > 1:
+            end = args.range[1]
+        else:
+            end = int(datetime.now().strftime("%Y%m%d"))
+        if begin > end:
+            print("The begin date is greater than the end date")
+            sys.exit(1)
+        results = [
+            result for result in data if result.in_date_range(begin, end)
+        ]
+    else:
+        results = data
+
+    sys_list = list_of_attr(results, "systolic")
+    dia_list = list_of_attr(results, "diastolic")
 
     print(format_report(sys_list, dia_list))

@@ -19,23 +19,23 @@ def test_add(output_file, input_args):
 def test_after_date():
     line = "150 80 60 20230404.1234"
     result = bpt.Result(line)
-    assert result.after_date("20000101.0000")
-    assert not result.after_date("20231231.2359")
+    assert result.after_date(20000101)
+    assert not result.after_date(30231231)
 
 
 def test_before_date():
     line = "150 80 60 20230404.1234"
     result = bpt.Result(line)
-    assert result.before_date("20231231.2359")
-    assert not result.before_date("20000101.0000")
+    assert result.before_date(20231231)
+    assert not result.before_date(20000101)
 
 
-def test_date_range():
+def test_date_range_single():
     line = "150 80 60 20230404.1234"
     result = bpt.Result(line)
-    assert result.in_date_range("20230101", "20231231")
-    assert not result.in_date_range("20220101", "20221231")
-    assert not result.in_date_range("20230501", "20231231")
+    assert result.in_date_range(20230101, 20231231)
+    assert not result.in_date_range(20220101, 20221231)
+    assert not result.in_date_range(20230501, 20231231)
 
 
 def test_get_labels():
@@ -73,3 +73,18 @@ def test_make_result():
 def test_results_from_file(input_file):
     data = bpt.results_from_file(input_file)
     assert len(data) >= 3
+
+
+def test_date_range_generator():
+    data = [
+        bpt.Result("110 59 68 20220809.1640"),
+        bpt.Result("124 62 62 20220810.0840"),
+        bpt.Result("134 63 57 20220812.0758"),
+        bpt.Result("134 62 57 20220812.1128"),
+        bpt.Result("100 59 62 20220812.1323"),
+    ]
+    results = [
+        result for result in data if result.in_date_range(20220808, 20220811)
+    ]
+    assert len(results) == 2
+    assert results[0].systolic == 110

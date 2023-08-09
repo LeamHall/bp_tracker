@@ -1,3 +1,10 @@
+# name:     test_bp_tracker.py
+# version:  0.0.1
+# date:     20220509
+# authors:  Leam Hall, Alex Kleider
+# desc:     Tests for bp_tracker.py
+
+
 import os
 import os.path
 import tempfile
@@ -104,13 +111,13 @@ class TestBpTracker(unittest.TestCase):
             bp_tracker.time_of_day_filter(
                 (115, 67, 66, "20220914.0839"), "0900", "1000"
             ),
-            None,
+            False,
         )
         self.assertEqual(
             bp_tracker.time_of_day_filter(
                 (115, 67, 66, "0.0"), "0800", "0900"
             ),
-            None,
+            False,
         )
 
     def test_get_label(self):
