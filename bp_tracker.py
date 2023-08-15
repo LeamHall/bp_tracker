@@ -268,8 +268,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.add:
-        add(args)
         results = data
+        add(args)
     elif args.range:
         begin = args.range[0]
         if len(args.range) > 1:
@@ -282,6 +282,8 @@ if __name__ == "__main__":
         results = [
             result for result in data if result.in_date_range(begin, end)
         ]
+    else:
+        results = data
 
     sys_list = list_of_attr(results, "systolic")
     dia_list = list_of_attr(results, "diastolic")
