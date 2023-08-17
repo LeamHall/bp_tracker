@@ -16,6 +16,20 @@ def test_add(output_file, input_args):
     assert type(result.timestamp) is str
 
 
+def test_get_data(input_file):
+    data = bpt.get_data(input_file)
+    result = data[-1]
+    assert result.systolic == 170
+    assert result.diastolic == 90
+    assert result.pulse == 70
+    assert type(result.timestamp) is str
+
+
+def test_get_data_no_file(output_file):
+    data = bpt.get_data("bad_file_name.txt")
+    assert data is None
+
+
 def test_after_date():
     line = "150 80 60 20230404.1234"
     result = bpt.Result(line)

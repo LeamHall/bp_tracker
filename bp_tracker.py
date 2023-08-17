@@ -140,8 +140,25 @@ def format_report(systolics, diastolics):
         dia_low,
         dia_upper,
     )
-    result += "Average {}/{} \n".format(
-        average(systolics), average(diastolics)
+    sys_avg = average(systolics)
+    sys_avg_low, sys_avg_upper, sys_avg_label = get_labels(
+        sys_avg, systolic_labels
+    )
+    result += "Systolic Average {} ({} [{}-{}])\n".format(
+        sys_avg,
+        sys_avg_label,
+        sys_avg_low,
+        sys_avg_upper,
+    )
+    dia_avg = average(diastolics)
+    dia_avg_low, dia_avg_upper, dia_avg_label = get_labels(
+        dia_avg, diastolic_labels
+    )
+    result += "Diastolic Average {} ({} [{}-{}])\n".format(
+        dia_avg,
+        dia_avg_label,
+        dia_avg_low,
+        dia_avg_upper,
     )
     return result
 
@@ -187,6 +204,16 @@ def get_args():
         help="Only consider the last NUMBER valid readings",
     )
     return parser.parse_args()
+
+
+def get_data(filename):
+    """Returns data from args.file if present, else None."""
+    try:
+        data = results_from_file(filename)
+    except FileNotFoundError:
+        print("Unable to find {}, exiting.".format(filename))
+        return None
+    return data
 
 
 def get_label(num, scale):
@@ -261,15 +288,13 @@ def useful_lines(stream, comment="#"):
 if __name__ == "__main__":
     args = get_args()
 
-    try:
-        data = results_from_file(args.file)
-    except FileNotFoundError:
-        print("Unable to find {}, exiting.".format(args.file))
-        sys.exit(1)
+    data = get_data(args.file)
+    if not data:
+        sys.exit(1, "Cannot find {}".format(args.file))
 
     if args.add:
-        results = data
         add(args)
+        results = get_data(args.file)
     elif args.range:
         begin = args.range[0]
         if len(args.range) > 1:
