@@ -178,13 +178,13 @@ def get_args():
         nargs=3,
         help="Add in the order of systolic, diastolic, pulse",
     )
-    parser.add_argument(
-        "-t",
-        "--times",
-        nargs=2,
-        type=int,
-        help="Only consider readings within TIMES span",
-    )
+    # parser.add_argument(
+    #    "-t",
+    #    "--times",
+    #    nargs=2,
+    #    type=int,
+    #    help="Only consider readings within TIMES span",
+    # )
     parser.add_argument(
         "-r",
         "--range",
@@ -196,13 +196,13 @@ def get_args():
             or
             20230809""",
     )
-    parser.add_argument(
-        "-n",
-        "--number",
-        nargs=1,
-        type=int,
-        help="Only consider the last NUMBER valid readings",
-    )
+    # parser.add_argument(
+    #    "-n",
+    #    "--number",
+    #    nargs=1,
+    #    type=int,
+    #    help="Only consider the last NUMBER valid readings",
+    # )
     return parser.parse_args()
 
 
