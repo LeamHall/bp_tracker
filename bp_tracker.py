@@ -59,14 +59,17 @@ class Result:
             self.timestamp = line_data[3]
 
     def before_date(self, date):
+        """ Returns bool if day given is <= timestamp date. """
         day = int(self.timestamp.split(".")[0])
         return day <= date
 
     def after_date(self, date):
+        """ Returns bool if day given is >= timestamp date. """
         day = int(self.timestamp.split(".")[0])
         return day >= date
 
     def in_date_range(self, begin, end):
+        """ Returns bool if day given is within date range. """
         return self.after_date(begin) and self.before_date(end)
 
 
@@ -262,6 +265,7 @@ def sort_by_attr(data, _attr):
 
 
 def time_of_day_filter(datum, begin, end):
+    """ Returns True if time given is within the filter range. """
     time = datum[3].split(".")[-1]
     if time >= begin and time <= end:
         return True
